@@ -8,10 +8,10 @@ then picks which agents to call, as tools. In this case, it picks from a set of 
 agents.
 """
 
-spanish_agent = Agent(
-    name="spanish_agent",
-    instructions="You translate the user's message to Spanish",
-    handoff_description="An english to spanish translator",
+chinese_agent = Agent(
+    name="chinese_agent",
+    instructions="You translate the user's message to Chinese",
+    handoff_description="An english to chinese translator",
 )
 
 french_agent = Agent(
@@ -34,9 +34,9 @@ orchestrator_agent = Agent(
         "You never translate on your own, you always use the provided tools."
     ),
     tools=[
-        spanish_agent.as_tool(
-            tool_name="translate_to_spanish",
-            tool_description="Translate the user's message to Spanish",
+        chinese_agent.as_tool(
+            tool_name="translate_to_chinese",
+            tool_description="Translate the user's message to Chinese",
         ),
         french_agent.as_tool(
             tool_name="translate_to_french",
@@ -61,17 +61,19 @@ async def main():
     # Run the entire orchestration in a single trace
     with trace("Orchestrator evaluator"):
         orchestrator_result = await Runner.run(orchestrator_agent, msg)
-
+        
+        # 调用了function call的event
         for item in orchestrator_result.new_items:
             if isinstance(item, MessageOutputItem):
                 text = ItemHelpers.text_message_output(item)
                 if text:
                     print(f"  - Translation step: {text}")
-
+        
         synthesizer_result = await Runner.run(
             synthesizer_agent, orchestrator_result.to_input_list()
         )
-
+    
+    # 原来也可以直接使用final_output进行最终结果的输出
     print(f"\n\nFinal response:\n{synthesizer_result.final_output}")
 
 

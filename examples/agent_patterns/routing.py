@@ -11,15 +11,11 @@ then hands off to the appropriate agent based on the language of the request. Re
 streamed to the user.
 """
 
-french_agent = Agent(
-    name="french_agent",
-    instructions="You only speak French",
+chinese_agent = Agent(
+    name="chinese_agent",
+    instructions="You only speak Chinese",
 )
 
-spanish_agent = Agent(
-    name="spanish_agent",
-    instructions="You only speak Spanish",
-)
 
 english_agent = Agent(
     name="english_agent",
@@ -29,7 +25,7 @@ english_agent = Agent(
 triage_agent = Agent(
     name="triage_agent",
     instructions="Handoff to the appropriate agent based on the language of the request.",
-    handoffs=[french_agent, spanish_agent, english_agent],
+    handoffs=[chinese_agent, english_agent],
 )
 
 
@@ -37,7 +33,7 @@ async def main():
     # We'll create an ID for this conversation, so we can link each trace
     conversation_id = str(uuid.uuid4().hex[:16])
 
-    msg = input("Hi! We speak French, Spanish and English. How can I help? ")
+    msg = input("Hi! I speak 中文 and English. How can I help you? 如何能够帮助你？")
     agent = triage_agent
     inputs: list[TResponseInputItem] = [{"content": msg, "role": "user"}]
 
@@ -53,6 +49,7 @@ async def main():
                 if not isinstance(event, RawResponsesStreamEvent):
                     continue
                 data = event.data
+                print(f"event: {data}")
                 if isinstance(data, ResponseTextDeltaEvent):
                     print(data.delta, end="", flush=True)
                 elif isinstance(data, ResponseContentPartDoneEvent):
