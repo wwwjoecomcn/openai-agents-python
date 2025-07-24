@@ -1,6 +1,8 @@
 import asyncio
 
-from agents import Agent, Runner
+from agents import Agent, Runner, WebSearchTool
+
+
 
 """This demonstrates usage of the `previous_response_id` parameter to continue a conversation.
 The second run passes the previous response ID to the model, which allows it to continue the
@@ -37,6 +39,7 @@ async def main_stream():
     agent = Agent(
         name="Assistant",
         instructions="You are a helpful assistant. be VERY concise.",
+        tools= [WebSearchTool()],
     )
 
     result = Runner.run_streamed(agent, "What is the largest country in South America?")
@@ -57,6 +60,15 @@ async def main_stream():
         if event.type == "raw_response_event" and event.data.type == "response.output_text.delta":
             print(event.data.delta, end="", flush=True)
 
+    result = Runner.run_streamed(
+        agent,
+        "What is the weather like there?",
+        previous_response_id=result.last_response_id
+    )
+
+    async for event in result.stream_events():
+        if event.type == "raw_response_event" and event.data.type == "response.output_text.delta":
+            print(event.data.delta, end="", flush=True)
 
 if __name__ == "__main__":
     is_stream = input("Run in stream mode? (y/n): ")

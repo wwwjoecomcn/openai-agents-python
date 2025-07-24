@@ -32,10 +32,10 @@ async def main():
                 model="computer-use-preview",
                 model_settings=ModelSettings(truncation="auto"),
             )
-            result = await Runner.run(agent, "Search for SF sports news and summarize.")
+            result = await Runner.run(agent, "Search for recent China news and summarize how the new tariff policy affect the economy.")
             print(result.final_output)
 
-
+# 所有的keyboard shortcuts
 CUA_KEY_TO_PLAYWRIGHT_KEY = {
     "/": "Divide",
     "\\": "Backslash",
@@ -64,7 +64,7 @@ CUA_KEY_TO_PLAYWRIGHT_KEY = {
     "win": "Meta",
 }
 
-
+# 基本的电脑操作
 class LocalPlaywrightComputer(AsyncComputer):
     """A computer, implemented using a local Playwright browser."""
 
@@ -72,7 +72,8 @@ class LocalPlaywrightComputer(AsyncComputer):
         self._playwright: Union[Playwright, None] = None
         self._browser: Union[Browser, None] = None
         self._page: Union[Page, None] = None
-
+    
+    # 网页搜索
     async def _get_browser_and_page(self) -> tuple[Browser, Page]:
         width, height = self.dimensions
         launch_args = [f"--window-size={width},{height}"]
@@ -116,12 +117,14 @@ class LocalPlaywrightComputer(AsyncComputer):
     @property
     def dimensions(self) -> tuple[int, int]:
         return (1024, 768)
-
+    
+    # 截屏
     async def screenshot(self) -> str:
         """Capture only the viewport (not full_page)."""
         png_bytes = await self.page.screenshot(full_page=False)
         return base64.b64encode(png_bytes).decode("utf-8")
-
+    
+    #鼠标点按
     async def click(self, x: int, y: int, button: Button = "left") -> None:
         playwright_button: Literal["left", "middle", "right"] = "left"
 
@@ -130,30 +133,37 @@ class LocalPlaywrightComputer(AsyncComputer):
             playwright_button = button  # type: ignore
 
         await self.page.mouse.click(x, y, button=playwright_button)
-
+    
+    # 鼠标双击
     async def double_click(self, x: int, y: int) -> None:
         await self.page.mouse.dblclick(x, y)
-
+    
+    # 滚动
     async def scroll(self, x: int, y: int, scroll_x: int, scroll_y: int) -> None:
         await self.page.mouse.move(x, y)
         await self.page.evaluate(f"window.scrollBy({scroll_x}, {scroll_y})")
-
+    
+    # 键盘输入
     async def type(self, text: str) -> None:
         await self.page.keyboard.type(text)
-
+    
+    # 等待
     async def wait(self) -> None:
         await asyncio.sleep(1)
-
+    
+    # 鼠标移动
     async def move(self, x: int, y: int) -> None:
         await self.page.mouse.move(x, y)
-
+   
+    # 键盘按下
     async def keypress(self, keys: list[str]) -> None:
         mapped_keys = [CUA_KEY_TO_PLAYWRIGHT_KEY.get(key.lower(), key) for key in keys]
         for key in mapped_keys:
             await self.page.keyboard.down(key)
         for key in reversed(mapped_keys):
             await self.page.keyboard.up(key)
-
+    
+    # 鼠标拖动
     async def drag(self, path: list[tuple[int, int]]) -> None:
         if not path:
             return
